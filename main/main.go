@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"projet"
+	"strconv"
 )
 
 func main() {
@@ -13,8 +14,15 @@ func main() {
 	txt,_ := os.ReadFile(entre)
 	var tab []string
 	word := ""
+	compri := false
 	for _, lettre := range txt {
-		if lettre == ' ' {
+		if lettre == '(' {
+			compri = true
+		}
+		if lettre == ')' {
+			compri = false
+		}
+		if lettre == ' ' && !compri {
 			tab = append(tab, string(word))
 			word = ""
 		} else {
@@ -36,46 +44,59 @@ func main() {
 }
 
 func erreur(tab []string) []string {
-	hex := -1
-	bin := -1
-	up := -1
-	low := -1
-	cap := -1
 	newtab := tab
 
-	for i, word := range tab {
-		switch word {
+	for word := 0; word < len(newtab); word++ {
+		switch newtab[word] {
 		case "(hex)":
-			hex = i
+			newtab = projet.Convhexa(newtab, word)
+			word--
 		case "(bin)":
-			bin = i
+			newtab = projet.Convbin(newtab, word)
+			word--
+		}
+		decoupe := decoupe(newtab[word])
+		switch decoupe[0] {
 		case "(up)":
-			up = i
+			newtab = projet.Convup(newtab,decoupe[1], word)
+			val,_ := strconv.Atoi(decoupe[1])
+			word -= val
 		case "(low)":
-			low = i
+			newtab = projet.Convlow(newtab,decoupe[1], word)
+			val,_ := strconv.Atoi(decoupe[1])
+			word -= val
 		case "(cap)":
-			cap = i
+			newtab = projet.Convcap(newtab,decoupe[1], word)
+			val,_ := strconv.Atoi(decoupe[1])
+			word -= val	
 		}
 	}
-	if hex != -1{
-		newtab = projet.Convhexa(newtab,hex)
-	}
-	if bin != -1 {
-		if hex != -1 && hex < bin {
-			bin--
-		}
-		newtab = projet.Convbin(newtab,bin)
-	}
-	if up != -1 {
-		newtab = projet.Convup(newtab,up)
-	}
-	if low != -1 {
-		newtab = projet.Convlow(newtab,low)
-	}
-	if cap != -1 {
-		newtab = projet.Convcap(newtab,cap)
-	}
-
 	return newtab
 }
 
+func decoupe(mot string) []string {
+	decoupe := []string{}
+	val := ""
+	for i, lettre := range mot {
+		if i == 0 && lettre != '(' {
+			decoupe = append(decoupe, "rien")
+			return decoupe
+		}
+		val += string(lettre)
+		switch val {
+		case "(up":
+			decoupe = append(decoupe, "(up)")
+		case "(low":
+			decoupe = append(decoupe, "(low)")
+		case "(cap":
+			decoupe = append(decoupe, "(cap)")
+		}
+		if lettre <= '9' && lettre >= '2' {
+			decoupe = append(decoupe, string(lettre))
+		}
+	}
+	if len(decoupe) == 1 {
+		decoupe = append(decoupe, "1")
+	}
+	return decoupe
+}
