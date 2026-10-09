@@ -33,6 +33,7 @@ func Convcap(tab []string, rep string, i int) []string {
 			}
 		}
 		tab[i-indice] = new
+		new = ""
 	}
 	return Reecrire(tab, i)
 }
